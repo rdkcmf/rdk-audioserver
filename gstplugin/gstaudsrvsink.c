@@ -126,8 +126,10 @@ static gboolean gst_audsrv_sink_stop(GstBaseSink *bsink);
 static GstFlowReturn gst_audsrv_sink_render(GstBaseSink *bsink, GstBuffer *buf);
 #ifdef USE_GST1
 static gboolean gst_audsrv_sink_event(GstPad *pad, GstObject *parent, GstEvent *event);
+static gboolean gst_audsrv_sink_sink_query(GstPad *pad, GstObject *parent, GstQuery *query);
 #else
 static gboolean gst_audsrv_sink_event(GstPad *pad, GstEvent *event);
+static gboolean gst_audsrv_sink_sink_query(GstPad *pad, GstQuery *query);
 #endif
 static gboolean gst_audsrv_sink_query(GstElement *element, GstQuery *query);
 static gboolean gst_audsrv_sink_prepare_to_render( GstAudsrvSink *sink, GstBuffer *buffer );
@@ -211,7 +213,12 @@ gst_audsrv_sink_init (GstAudsrvSink *sink, GstAudsrvSinkClass *g_class)
 #endif
 {
    sink->parentEventFunc= GST_PAD_EVENTFUNC(GST_BASE_SINK_PAD(sink));
+   sink->parentQueryFunc= GST_PAD_QUERYFUNC(GST_BASE_SINK_PAD(sink));
+   if ( sink->parentQueryFunc == NULL ) {
+      sink->parentQueryFunc = gst_pad_query_default;
+   }
    gst_pad_set_event_function(GST_BASE_SINK_PAD(sink), GST_DEBUG_FUNCPTR(gst_audsrv_sink_event));
+   gst_pad_set_query_function(GST_BASE_SINK_PAD(sink), GST_DEBUG_FUNCPTR(gst_audsrv_sink_sink_query));
    gst_base_sink_set_sync(GST_BASE_SINK(sink), FALSE);
    gst_base_sink_set_async_enabled(GST_BASE_SINK(sink), FALSE);
    sink->caps= NULL;
@@ -855,6 +862,62 @@ static gboolean gst_audsrv_sink_event(GstPad *pad, GstEvent *event)
    
    return result;
 }
+
+#ifdef USE_GST1
+static gboolean
+gst_audsrv_sink_sink_query (
+    GstPad*     pad,
+    GstObject*  parent,
+    GstQuery*   query
+) {
+#else
+static gboolean
+gst_audsrv_sink_sink_query (
+    GstPad*     pad,
+    GstQuery*   query
+) {
+    GstObject*  parent= gst_pad_get_parent(pad);
+#endif
+    GstAudsrvSink *sink= GST_AUDSRV_SINK(parent);
+    gboolean        rv = FALSE;
+
+    GST_DEBUG_OBJECT(parent, "AUDIOSERVER - Got query %s\n", GST_QUERY_TYPE_NAME(query));
+    switch (GST_QUERY_TYPE(query))  {
+        case GST_QUERY_CUSTOM: {
+            const gchar *struct_name = NULL;
+            GstStructure *query_structure = (GstStructure*) gst_query_get_structure (query);
+            struct_name = gst_structure_get_name(query_structure);
+            GST_DEBUG_OBJECT(parent, "GST_QUERY_CUSTOM %s\n", struct_name);
+
+            if (struct_name &&
+                (!strcasecmp(struct_name, "get_decoder_status") ||
+                 !strcasecmp(struct_name, "get_current_pts"))) {
+                //TODO: Determine if this is possible without rasising a API call to AudioServer
+                GST_DEBUG_OBJECT(parent, "GST_QUERY_CUSTOM: %s\n", struct_name);
+                return FALSE;
+            }
+            else {
+                GST_DEBUG_OBJECT(parent, "PARENT GST_QUERY_CUSTOM\n");
+#ifdef USE_GST1
+                rv= sink->parentQueryFunc(pad, parent, query);
+#else
+                rv= sink->parentQueryFunc(pad, query);
+#endif
+            }
+        }
+        break;
+        default:
+#ifdef USE_GST1
+            rv= sink->parentQueryFunc(pad, parent, query);
+#else
+            rv= sink->parentQueryFunc(pad, query);
+#endif
+        break;
+    }
+
+    return rv;
+}
+
 
 static gboolean gst_audsrv_sink_query(GstElement *element, GstQuery *query)
 {

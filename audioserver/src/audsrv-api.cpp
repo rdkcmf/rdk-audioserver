@@ -2701,6 +2701,22 @@ static int audsrv_process_getstatus_results( AudsrvApiContext *ctx, unsigned msg
                   
                   if ( type != AUDSRV_TYPE_U16 )
                   {
+                     ERROR("expecting type %d (U16) not type %d for getStatusResults paused", AUDSRV_TYPE_U16, type );
+                     error= true;
+                  }
+                  else
+                  {
+                     status.paused= audsrv_conn_get_u16( ctx->conn );
+                  }
+               }
+
+               if ( !error )
+               {
+                  len= audsrv_conn_get_u32( ctx->conn );
+                  type= audsrv_conn_get_u32( ctx->conn );
+
+                  if ( type != AUDSRV_TYPE_U16 )
+                  {
                      ERROR("expecting type %d (U16) not type %d for getStatusResults muted", AUDSRV_TYPE_U16, type );
                      error= true;
                   }

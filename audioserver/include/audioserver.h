@@ -66,6 +66,7 @@ typedef struct _AudSrvSessionStatus
    float globalVolume;
    bool ready;
    bool playing;
+   bool paused;
    bool muted;
    float volume;
    char sessionName[AUDSRV_MAX_SESSION_NAME_LEN+1];

@@ -2770,6 +2770,7 @@ static bool audsrv_send_getstatus_results( AudsrvClient *client, unsigned long l
       {
          nameLen= AUDSRV_MSG_STRING_LEN(status->sessionName);
          paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U16_LEN); // playing
+         paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U16_LEN); // paused
          paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U16_LEN); // muted
          paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U32_LEN); // volume num
          paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U32_LEN); // volume denom
@@ -2811,6 +2812,9 @@ static bool audsrv_send_getstatus_results( AudsrvClient *client, unsigned long l
          p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
          p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U16 );
          p += audsrv_conn_put_u16( p, status->playing );
+         p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
+         p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U16 );
+         p += audsrv_conn_put_u16( p, status->paused );
          p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
          p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U16 );
          p += audsrv_conn_put_u16( p, status->muted );
