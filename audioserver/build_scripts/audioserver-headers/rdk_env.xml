@@ -1,0 +1,14 @@
+<environment>
+  <components>
+    <audioserver-headers>
+
+       <paths>
+         <scripts>audioserver/build_scripts/audioserver-headers/</scripts>
+       </paths>
+
+      <is_coverity_supported>False</is_coverity_supported>
+
+    </audioserver-headers>
+  </components>
+</environment>
+

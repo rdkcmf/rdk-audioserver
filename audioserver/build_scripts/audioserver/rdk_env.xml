@@ -1,0 +1,15 @@
+<environment>
+  <components>
+    <audioserver>
+      <dependencies>audioserver-soc</dependencies>
+
+       <paths>
+         <scripts>audioserver/build_scripts/audioserver/</scripts>
+       </paths>
+
+      <is_coverity_supported>False</is_coverity_supported>
+
+    </audioserver>
+  </components>
+</environment>
+
