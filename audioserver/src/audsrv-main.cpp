@@ -431,6 +431,7 @@ int main( int argc, const char **argv )
       sigemptyset(&sigint.sa_mask);
       sigint.sa_flags= SA_RESETHAND;
       sigaction(SIGINT, &sigint, NULL);
+      sigaction(SIGTERM, &sigint, NULL);
 
       char *env= getenv( "AUDSRV_DEBUG" );
       if ( env )
@@ -1845,10 +1846,77 @@ static int audsrv_process_startcapture( AudsrvClient *client, unsigned msglen, u
          unsigned len, type, value;
          char name[AUDSRV_MAX_SESSION_NAME_LEN+1];
          char *sessionName= 0;
+         AudSrvCaptureParameters captureParams;
 
          len= audsrv_conn_get_u32( client->conn );
          type= audsrv_conn_get_u32( client->conn );
+
+         if ( type != AUDSRV_TYPE_U16 )
+         {
+            ERROR("expecting type %d (U16) not type %d for audio start capture arg 1 (numChannels)", AUDSRV_TYPE_U16, type );
+            goto exit;
+         }
+
+         captureParams.numChannels = audsrv_conn_get_u16( client->conn );
+
+         len= audsrv_conn_get_u32( client->conn );
+         type= audsrv_conn_get_u32( client->conn );
+
+         if ( type != AUDSRV_TYPE_U16 )
+         {
+            ERROR("expecting type %d (U16) not type %d for audio start capture arg 3 (bitsPerSample)", AUDSRV_TYPE_U16, type );
+            goto exit;
+         }
+
+         captureParams.bitsPerSample = audsrv_conn_get_u16( client->conn );
+
+         len= audsrv_conn_get_u32( client->conn );
+         type= audsrv_conn_get_u32( client->conn );
+
+         if ( type != AUDSRV_TYPE_U16 )
+         {
+            ERROR("expecting type %d (U16) not type %d for audio start capture arg 3 (threshold)", AUDSRV_TYPE_U16, type );
+            goto exit;
+         }
+
+         captureParams.threshold = audsrv_conn_get_u16( client->conn );
+
+         len= audsrv_conn_get_u32( client->conn );
+         type= audsrv_conn_get_u32( client->conn );
+
+         if ( type != AUDSRV_TYPE_U32 )
+         {
+            ERROR("expecting type %d (U32) not type %d for audio start capture arg 1 (sampleRate)", AUDSRV_TYPE_U32, type );
+            goto exit;
+         }
+
+         captureParams.sampleRate = audsrv_conn_get_u32( client->conn );
+
+         len= audsrv_conn_get_u32( client->conn );
+         type= audsrv_conn_get_u32( client->conn );
+
+         if ( type != AUDSRV_TYPE_U32 )
+         {
+            ERROR("expecting type %d (U32) not type %d for audio start capture arg 1 (outputDelay)", AUDSRV_TYPE_U32, type );
+            goto exit;
+         }
          
+         captureParams.outputDelay = audsrv_conn_get_u32( client->conn );
+
+         len= audsrv_conn_get_u32( client->conn );
+         type= audsrv_conn_get_u32( client->conn );
+
+         if ( type != AUDSRV_TYPE_U32 )
+         {
+            ERROR("expecting type %d (U32) not type %d for audio start capture arg 1 (fifoSize)", AUDSRV_TYPE_U32, type );
+            goto exit;
+         }
+
+         captureParams.fifoSize = audsrv_conn_get_u32( client->conn );
+
+         len= audsrv_conn_get_u32( client->conn );
+         type= audsrv_conn_get_u32( client->conn );
+
          if ( type != AUDSRV_TYPE_String )
          {
             ERROR("expecting type %d (string) not type %d for init arg 1 (sessionName)", AUDSRV_TYPE_String, type );
@@ -1867,7 +1935,7 @@ static int audsrv_process_startcapture( AudsrvClient *client, unsigned msglen, u
          }
          INFO("capture sessionName (%s)", sessionName);
 
-         AudioServerSocSetCaptureCallback( client->soc, sessionName, audsrv_capture_callback, client );
+         AudioServerSocSetCaptureCallback( client->soc, sessionName, audsrv_capture_callback, &captureParams, client );
       }
    }
    else
@@ -1888,7 +1956,7 @@ static int audsrv_process_stopcapture( AudsrvClient *client, unsigned msglen, un
    {   
       if ( version <= AUDSRV_MSG_StartCapture_Version )
       {
-         AudioServerSocSetCaptureCallback( client->soc, NULL, NULL, 0 );
+         AudioServerSocSetCaptureCallback( client->soc, NULL, NULL, NULL, 0 );
          
          audsrv_send_capture_done( client );
       }

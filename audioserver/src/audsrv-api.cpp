@@ -1538,15 +1538,21 @@ void AudioServerSetUnderflowCallback( AudSrv audsrv, AudioServerUnderflow cb, vo
    }
 }
 
-bool AudioServerStartCapture( AudSrv audsrv, const char *sessionName, AudioServerCapture cb, void *userData )
+bool AudioServerStartCapture( AudSrv audsrv, const char *sessionName, AudioServerCapture cb, AudSrvCaptureParameters *params, void *userData )
 {
    AudsrvApiContext *ctx= (AudsrvApiContext*)audsrv;
+   AudSrvCaptureParameters captureParams;
    bool result= false;
    unsigned char *p;
    int msgLen, paramLen, nameLen;
    int sendLen;
    
    TRACE1("AudioServerStartCapture: audsrv %p", audsrv );
+
+   memset(&captureParams, 0, sizeof(AudSrvCaptureParameters));
+
+   if ( params )
+      memcpy(&captureParams, params, sizeof(AudSrvCaptureParameters));
    
    if ( ctx )
    {
@@ -1567,7 +1573,13 @@ bool AudioServerStartCapture( AudSrv audsrv, const char *sessionName, AudioServe
       }
       nameLen= (sessionName ? AUDSRV_MSG_STRING_LEN(sessionName) : 0);
 
-      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + nameLen); // sessionName
+      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U16_LEN);   // numChannels
+      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U16_LEN);   // bitsPerSample
+      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U16_LEN);   // threshold
+      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U32_LEN);   // sampleRate
+      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U32_LEN);   // outputDelay
+      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + AUDSRV_MSG_U32_LEN);   // fifoSize
+      paramLen += (AUDSRV_MSG_TYPE_HDR_LEN + nameLen);              // sessionName
 
       msgLen= AUDSRV_MSG_HDR_LEN + paramLen;
       
@@ -1581,6 +1593,24 @@ bool AudioServerStartCapture( AudSrv audsrv, const char *sessionName, AudioServe
       p += audsrv_conn_put_u32( p, paramLen );
       p += audsrv_conn_put_u32( p, AUDSRV_MSG_StartCapture );
       p += audsrv_conn_put_u32( p, AUDSRV_MSG_StartCapture_Version );
+      p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
+      p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U16 );
+      p += audsrv_conn_put_u16( p, captureParams.numChannels );
+      p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
+      p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U16 );
+      p += audsrv_conn_put_u16( p, captureParams.bitsPerSample );
+      p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
+      p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U16 );
+      p += audsrv_conn_put_u16( p, captureParams.threshold );
+      p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
+      p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U32 );
+      p += audsrv_conn_put_u32( p, captureParams.sampleRate );
+      p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
+      p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U32 );
+      p += audsrv_conn_put_u32( p, captureParams.outputDelay );
+      p += audsrv_conn_put_u32( p, AUDSRV_MSG_U16_LEN );
+      p += audsrv_conn_put_u32( p, AUDSRV_TYPE_U32 );
+      p += audsrv_conn_put_u32( p, captureParams.fifoSize );
       p += audsrv_conn_put_u32( p, nameLen );
       p += audsrv_conn_put_u32( p, AUDSRV_TYPE_String );
       if ( sessionName )

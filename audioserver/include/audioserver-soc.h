@@ -63,7 +63,7 @@ void AudioServerSocDisableEOSDetection( AudSrvSocClient audsrvsocclient );
 void AudioServerSocSetFirstAudioFrameCallback( AudSrvSocClient audsrvsocclient, AudioServerSocFirstAudio cb, void *userData );
 void AudioServerSocSetPTSErrorCallback( AudSrvSocClient audsrvsocclient, AudioServerSocPTSError cb, void *userData );
 void AudioServerSocSetUnderflowCallback( AudSrvSocClient audsrvsocclient, AudioServerSocUnderflow cb, void *userData );
-bool AudioServerSocSetCaptureCallback( AudSrvSocClient audsrvsocclient, const char *sessionName, AudioServerSocCaptureData cb, void *userData );
+bool AudioServerSocSetCaptureCallback( AudSrvSocClient audsrvsocclient, const char *sessionName, AudioServerSocCaptureData cb, AudSrvCaptureParameters *params, void *userData );
 
 #endif
 

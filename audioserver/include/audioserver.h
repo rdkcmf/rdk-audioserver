@@ -88,8 +88,10 @@ typedef struct _AudSrvCaptureParameters
    unsigned version;
    unsigned short numChannels;
    unsigned short bitsPerSample;
+   unsigned short threshold;
    unsigned sampleRate;
    unsigned outputDelay;
+   unsigned fifoSize;
 } AudSrvCaptureParameters;
 
 typedef void (*AudioServerEnumSessions)( void *userData, int result, int count, AudSrvSessionInfo *sessionInfo );
@@ -336,7 +338,7 @@ void AudioServerSetUnderflowCallback( AudSrv audsrv, AudioServerUnderflow cb, vo
  * audio data along with the data parameters.  Pass NULL for sessionName to capture main mixed audio output 
  * or the name of a private session to capture the unmixed session data.
  */ 
-bool AudioServerStartCapture( AudSrv audsrv, const char *sessionName, AudioServerCapture cb, void *userData );
+bool AudioServerStartCapture( AudSrv audsrv, const char *sessionName, AudioServerCapture cb, AudSrvCaptureParameters *params, void *userData );
 
 /**
  * AudioServerStopCapture

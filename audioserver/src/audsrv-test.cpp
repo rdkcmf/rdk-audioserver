@@ -1248,7 +1248,7 @@ static void toggleCapture( AppCtx *ctx )
       if ( ctx->audsrvCapture )
       {
          ctx->captureByteCount= 0;         
-         if ( AudioServerStartCapture( ctx->audsrvCapture, ctx->sessionNameToCapture, captureCallback, ctx ) )
+         if ( AudioServerStartCapture( ctx->audsrvCapture, ctx->sessionNameToCapture, captureCallback, NULL, ctx ) )
          {
             g_print("capture started...\n");
             ctx->capture= true;
