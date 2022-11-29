@@ -28,6 +28,8 @@ Environment="AUDSRV_DEBUG=2"
 Environment="AUDSRV_NAME=audsrv0"
 ExecStartPre=/bin/sleep 5
 ExecStart=/usr/bin/audioserver
+ExecStop=/bin/kill -15 $MAINPID
+TimeoutStopSec=3
 Restart=on-failure
 
 [Install]
